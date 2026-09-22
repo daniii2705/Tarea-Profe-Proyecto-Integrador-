@@ -1,0 +1,262 @@
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+
+/* =================================================
+   FONDO DE NUBES
+================================================= */
+
+.fondo-nubes {
+
+    background:
+
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(255,255,255,0.9) 0 45px,
+            transparent 46px
+        ),
+
+        radial-gradient(
+            circle at 22% 20%,
+            rgba(255,255,255,0.9) 0 60px,
+            transparent 61px
+        ),
+
+        radial-gradient(
+            circle at 80% 15%,
+            rgba(255,255,255,0.8) 0 50px,
+            transparent 51px
+        ),
+
+        linear-gradient(
+            180deg,
+            #BDE7FF,
+            #EAF7FF
+        );
+
+}
+
+
+/* =================================================
+   NUBES DECORATIVAS
+================================================= */
+
+.nube {
+
+    position: absolute;
+
+    background: white;
+
+    border-radius: 999px;
+
+    opacity: 0.75;
+
+    filter: blur(1px);
+
+    animation: nubeMover 18s linear infinite;
+
+}
+
+@keyframes nubeMover {
+
+    0% {
+        transform: translateX(-150px);
+    }
+
+    50% {
+        transform: translateX(50px);
+    }
+
+    100% {
+        transform: translateX(-150px);
+    }
+
+}
+
+
+/* =================================================
+   TARJETAS
+================================================= */
+
+.tarjeta {
+
+    cursor: pointer;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+
+}
+
+.tarjeta:hover {
+
+    transform:
+        translateY(-8px)
+        rotate(1deg);
+
+    box-shadow:
+        0 20px 35px
+        rgba(40, 120, 184, 0.18);
+
+}
+
+.tarjeta:active {
+
+    transform: scale(0.94);
+
+}
+
+
+/* =================================================
+   ANIMACIONES
+================================================= */
+
+.flotar {
+
+    animation:
+        flotar 3s ease-in-out infinite;
+
+}
+
+@keyframes flotar {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
+
+}
+
+
+.rebote {
+
+    animation:
+        rebote 0.7s ease;
+
+}
+
+@keyframes rebote {
+
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.25);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+
+}
+
+
+.titulo {
+
+    background:
+
+        linear-gradient(
+            90deg,
+            #2878B8,
+            #4DA9E8,
+            #8A82FF,
+            #4DA9E8
+        );
+
+    -webkit-background-clip: text;
+
+    background-clip: text;
+
+    color: transparent;
+
+}
+
+
+/* =================================================
+   ESTRELLITAS
+================================================= */
+
+.estrella {
+
+    position: fixed;
+
+    pointer-events: none;
+
+    animation:
+        desaparecer 1s forwards;
+
+}
+
+@keyframes desaparecer {
+
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform:
+            scale(2)
+            translateY(-40px);
+    }
+
+}
+
+
+/* =================================================
+   CANVAS
+================================================= */
+
+#p5-container canvas {
+
+    max-width: 100%;
+
+    height: auto !important;
+
+    border-radius: 25px;
+
+}
+
+
+/* =================================================
+   BOTONES GRANDES
+================================================= */
+
+.boton-nino {
+
+    min-height: 80px;
+
+    border-radius: 25px;
+
+    font-size: 1.5rem;
+
+    font-weight: 900;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s;
+
+}
+
+.boton-nino:hover {
+
+    transform: scale(1.05);
+
+}
+
+.boton-nino:active {
+
+    transform: scale(0.92);
+
+}

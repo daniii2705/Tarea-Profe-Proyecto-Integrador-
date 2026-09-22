@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<!--
+============================================================
+NOTAS DE REVISIÓN — PROYECTO EDUCATIVO DE FIGURAS GEOMÉTRICAS
+============================================================
+Los comentarios de mi codigo:
+  1) Óvalo: 0 lados rectos (ya está correcto).
+  2) Estrella: tu código usa 5 como convención; si la profe pide
+     contar segmentos del contorno, puede considerarse 10.
+  3) Juego de lados: actualmente contempla 0, 3, 4 y 5; se marca
+     dónde añadir 10 si esa es la convención que usa tu profe.
+  4) Memoria: tu versión usa 4 símbolos; se marca dónde ampliar
+     a las 8 figuras si la consigna exige todas.
+  5) mostrarFigura(), p5.js y demás funciones se dejan intactas.
+
+ 🧸📚
+============================================================
+-->
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="El Reino Mágico de las Figuras: un espacio educativo e interactivo para que los niños aprendan geometría jugando.">
+
+    <title>El Reino Mágico de las Figuras ☁️🧸💙</title>
+
+
+    <!-- =====================================================
+         TAILWIND CSS
+    ====================================================== -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+    <!-- =====================================================
+         CONFIGURACIÓN DE COLORES
+    ====================================================== -->
+
+    <script>
+
+        tailwind.config = {
+
+            theme: {
+
+                extend: {
+
+                    colors: {
+
+                        cielo: '#EAF7FF',
+                        cieloOscuro: '#BDE7FF',
+                        azulPrincipal: '#4DA9E8',
+                        azulOscuro: '#2878B8',
+                        azulSuave: '#D9F1FF',
+
+                        celeste: '#8ED8FF',
+                        lavanda: '#C8C4FF',
+                        amarillo: '#FFE58A',
+                        verde: '#A8E6CF',
+                        rosado: '#FFD1E3',
+
+                        texto: '#28465C',
+                        textoSuave: '#557080'
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    </script>
+
+
+    <!-- =====================================================
+         p5.js
+    ====================================================== -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+
+
+    <!-- =====================================================
+         ESTILOS
+    ====================================================== -->
+
+    <style>
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+
+        /* =================================================
+           FONDO DE NUBES
+        ================================================= */
+
+        .fondo-nubes {
+
+            background:
+
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(255,255,255,0.9) 0 45px,
+                    transparent 46px
+                ),
+
+                radial-gradient(
+                    circle at 22% 20%,
+                    rgba(255,255,255,0.9) 0 60px,
+                    transparent 61px
+                ),
+
+                radial-gradient(
+                    circle at 80% 15%,
+                    rgba(255,255,255,0.8) 0 50px,
+                    transparent 51px
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #BDE7FF,
+                    #EAF7FF
+                );
+
+        }
+
+
+        /* =================================================
+           NUBES DECORATIVAS
+        ================================================= */
+
+        .nube {
+
+            position: absolute;
+
+            background: white;
+
+            border-radius: 999px;
+
+            opacity: 0.75;
+
+            filter: blur(1px);
+
+            animation: nubeMover 18s linear infinite;
+
+        }
+
+        @keyframes nubeMover {
+
+            0% {
+                transform: translateX(-150px);
+            }
+
+            50% {
+                transform: translateX(50px);
+            }
+
+            100% {
+                transform: translateX(-150px);
+            }
+
+        }
+
+
+        /* =================================================
+           TARJETAS
+        ================================================= */
+
+        .tarjeta {
+
+            cursor: pointer;
+
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+
+        }
+
+        .tarjeta:hover {
+
+            transform:
+                translateY(-8px)
+                rotate(1deg);
+
+            box-shadow:
+                0 20px 35px
+                rgba(40, 120, 184, 0.18);
+
+        }
+
+        .tarjeta:active {
+
+            transform: scale(0.94);
+
+        }
+
+
+        /* =================================================
+           ANIMACIONES
+        ================================================= */
+
+        .flotar {
+
+            animation:
+                flotar 3s ease-in-out infinite;
+
+        }
+
+        @keyframes flotar {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+
+        }
+
+
+        .rebote {
+
+            animation:
+                rebote 0.7s ease;
+
+        }
+
+        @keyframes rebote {
+
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.25);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+
+        }
+
+
+        .titulo {
+
+            background:
+
+                linear-gradient(
+                    90deg,
+                    #2878B8,
+                    #4DA9E8,
+                    #8A82FF,
+                    #4DA9E8
+                );
+
+            -webkit-background-clip: text;
+
+            background-clip: text;
+
+            color: transparent;
+
+        }
+
+
+        /* =================================================
+           ESTRELLITAS
+        ================================================= */
+
+        .estrella {
+
+            position: fixed;
+
+            pointer-events: none;
+
+            animation:
+                desaparecer 1s forwards;
+
+        }
+
+        @keyframes desaparecer {
+
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform:
+                    scale(2)
+                    translateY(-40px);
+            }
+
+        }
+
+
+        /* =================================================
+           CANVAS
+        ================================================= */
+
+        #p5-container canvas {
+
+            max-width: 100%;
+
+            height: auto !important;
+
+            border-radius: 25px;
+
+        }
+
+
+        /* =================================================
+           BOTONES GRANDES
+        ================================================= */
+
+        .boton-nino {
+
+            min-height: 80px;
+
+            border-radius: 25px;
+
+            font-size: 1.5rem;
+
+            font-weight: 900;
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s;
+
+        }
+
+        .boton-nino:hover {
+
+            transform: scale(1.05);
+
+        }
+
+        .boton-nino:active {
+
+            transform: scale(0.92);
+
+        }
+
+    </style>
+
+</head>
+
+
+
+<body class="bg-cielo text-texto font-sans antialiased">
+
+
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
+
+    <nav
+        class="bg-white/90 backdrop-blur-md fixed w-full z-50 top-0 border-b border-cieloOscuro shadow-sm">
+
+        <div
+            class="max-w-screen-xl mx-auto p-4 flex items-center justify-between">
+
+            <a
+                href="#inicio"
+                class="flex items-center gap-3">
+
+                <span class="text-4xl">
+                    🧸
+                </span>
+
+                <span
+                    class="text-xl md:text-2xl font-black text-azulPrincipal">
+
+                    Reino Mágico ✨
+
+                </span>
+
+            </a>
+
+
+            <div
+                class="flex gap-2 items-center">
+
+                <a
+                    href="#figuras"
+                    class="hidden md:block font-bold hover:text-azulPrincipal">
+
+                    🔷 Figuras
+
+                </a>
+
+                <a
+                    href="#juegos"
+                    class="hidden md:block font-bold hover:text-azulPrincipal">
+
+                    🎮 Juegos
+
+                </a>
+
+                <a
+                    href="#dibujar"
+                    class="bg-azulPrincipal text-white px-5 py-3 rounded-full font-black shadow-md">
+
+                    ✏️ Jugar
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- =====================================================
+         INICIO
+    ====================================================== -->
+
+    <section
+        id="inicio"
+        class="relative pt-32 pb-24 px-5 fondo-nubes overflow-hidden">
+
+
+        <div class="nube"
+            style="width:180px;height:60px;top:120px;left:5%;">
+        </div>
+
+        <div class="nube"
+            style="width:220px;height:70px;top:260px;right:5%;">
+        </div>
+
+
+        <div
+            class="max-w-screen-xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
+
+
+            <div
+                class="text-center lg:text-left">
+
+                <span
+                    class="inline-block bg-yellow-200 px-6 py-3 rounded-full font-black shadow-sm mb-5">
+
+                    ⭐ ¡Aprendamos jugando! ⭐
+
+                </span>
+
+
+                <h1
+                    class="text-5xl md:text-7xl font-black leading-tight titulo">
+
+                    ¡El mágico mundo de las figuras! ☁️🔷
+
+                </h1>
+
+
+                <p
+                    class="mt-6 text-lg md:text-2xl text-textoSuave font-semibold">
+
+                    Descubre círculos, cuadrados, triángulos
+                    y muchas figuras mientras juegas,
+                    exploras y te diviertes. 🧸💙
+
+                </p>
+
+
+                <div
+                    class="flex flex-wrap gap-4 justify-center lg:justify-start mt-8">
+
+                    <a
+                        href="#figuras"
+                        class="bg-azulPrincipal text-white px-7 py-4 rounded-full font-black text-lg shadow-lg hover:scale-105 transition">
+
+                        🔎 Explorar
+
+                    </a>
+
+
+                    <a
+                        href="#juegos"
+                        class="bg-white text-azulPrincipal px-7 py-4 rounded-full font-black text-lg shadow-lg border-4 border-cieloOscuro hover:scale-105 transition">
+
+                        🎮 Jugar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="flex justify-center">
+
+                <div
+                    class="bg-white rounded-[3rem] p-10 shadow-2xl border-4 border-cieloOscuro text-center flotar">
+
+                    <div class="text-9xl">
+
+                        🧸
+
+                    </div>
+
+                    <div class="text-5xl mt-4">
+
+                        ☁️ 🔷 ⭐
+
+                    </div>
+
+                    <h2
+                        class="text-3xl font-black text-azulPrincipal mt-5">
+
+                        ¡Hola! 👋
+
+                    </h2>
+
+                    <p
+                        class="text-textoSuave font-semibold mt-2">
+
+                        ¡Vamos a aprender juntos!
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 1 — FIGURAS
+    ====================================================== -->
+
+    <section
+        id="figuras"
+        class="py-20 px-5 bg-white">
+
+        <div
+            class="max-w-screen-xl mx-auto">
+
+            <div class="text-center mb-12">
+
+                <div class="text-6xl">
+                    🔷 🔺 🟢
+                </div>
+
+                <h2
+                    class="text-4xl md:text-5xl font-black text-azulPrincipal mt-4">
+
+                    ¡Conoce las figuras!
+
+                </h2>
+
+                <p
+                    class="text-xl text-textoSuave mt-4 font-semibold">
+
+                    Toca una figura para descubrirla. 👆
+
+                </p>
+
+            </div>
+
+
+
+            <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+
+                <!-- CÍRCULO -->
+
+                <button
+                    onclick="mostrarFigura('circulo')"
+                    class="tarjeta bg-blue-50 rounded-3xl p-7 border-4 border-blue-200">
+
+                    <div class="text-7xl">
+                        🔵
+                    </div>
+
+                    <h3 class="text-2xl font-black text-blue-600 mt-4">
+                        Círculo
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        Redondito
+                    </p>
+
+                </button>
+
+
+                <!-- TRIÁNGULO -->
+
+                <button
+                    onclick="mostrarFigura('triangulo')"
+                    class="tarjeta bg-yellow-50 rounded-3xl p-7 border-4 border-yellow-200">
+
+                    <div class="text-7xl">
+                        🔺
+                    </div>
+
+                    <h3 class="text-2xl font-black text-orange-500 mt-4">
+                        Triángulo
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        3 lados
+                    </p>
+
+                </button>
+
+
+                <!-- CUADRADO -->
+
+                <button
+                    onclick="mostrarFigura('cuadrado')"
+                    class="tarjeta bg-green-50 rounded-3xl p-7 border-4 border-green-200">
+
+                    <div class="text-7xl">
+                        🟩
+                    </div>
+
+                    <h3 class="text-2xl font-black text-green-600 mt-4">
+                        Cuadrado
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        4 lados
+                    </p>
+
+                </button>
+
+
+                <!-- RECTÁNGULO -->
+
+                <button
+                    onclick="mostrarFigura('rectangulo')"
+                    class="tarjeta bg-purple-50 rounded-3xl p-7 border-4 border-purple-200">
+
+                    <div class="text-7xl">
+                        ▭
+                    </div>
+
+                    <h3 class="text-2xl font-black text-purple-500 mt-4">
+                        Rectángulo
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        4 lados
+                    </p>
+
+                </button>
+
+
+                <!-- ROMBO -->
+
+                <button
+                    onclick="mostrarFigura('rombo')"
+                    class="tarjeta bg-pink-50 rounded-3xl p-7 border-4 border-pink-200">
+
+                    <div class="text-7xl">
+                        💎
+                    </div>
+
+                    <h3 class="text-2xl font-black text-pink-500 mt-4">
+                        Rombo
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        4 lados
+                    </p>
+
+                </button>
+
+
+                <!-- ÓVALO -->
+
+                <button
+                    onclick="mostrarFigura('ovalo')"
+                    class="tarjeta bg-cyan-50 rounded-3xl p-7 border-4 border-cyan-200">
+
+                    <div class="text-7xl">
+                        🥚
+                    </div>
+
+                    <h3 class="text-2xl font-black text-cyan-500 mt-4">
+                        Óvalo
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        Curvito
+                    </p>
+
+                </button>
+
+
+                <!-- ESTRELLA -->
+
+                <button
+                    <!-- CAMBIO REVISADO: la estrella puede explicarse por sus 5 puntas. Si la profe pide contar los segmentos del contorno, serían 10 lados; no se cambia el código aquí para respetar tu versión. -->
+                    onclick="mostrarFigura('estrella')"
+                    class="tarjeta bg-yellow-50 rounded-3xl p-7 border-4 border-yellow-200">
+
+                    <div class="text-7xl">
+                        ⭐
+                    </div>
+
+                    <h3 class="text-2xl font-black text-yellow-500 mt-4">
+                        Estrella
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        Tiene puntas
+                        <!-- CAMBIO SUGERIDO (solo comentario): si quieres dejarlo más explícito para niños, puedes usar 'Tiene 5 puntas'. No se modifica tu texto original. -->
+                    </p>
+
+                </button>
+
+
+                <!-- PENTÁGONO -->
+
+                <button
+                    onclick="mostrarFigura('pentagono')"
+                    class="tarjeta bg-orange-50 rounded-3xl p-7 border-4 border-orange-200">
+
+                    <div class="text-7xl">
+                        ⬟
+                    </div>
+
+                    <h3 class="text-2xl font-black text-orange-500 mt-4">
+                        Pentágono
+                    </h3>
+
+                    <p class="text-textoSuave mt-2">
+                        5 lados
+                    </p>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- INFORMACIÓN -->
+
+            <div
+                id="infoFigura"
+                class="hidden mt-12 bg-cielo rounded-[2rem] border-4 border-cieloOscuro p-10 text-center">
+
+                <div
+                    id="figuraGrande"
+                    class="text-9xl">
+                </div>
+
+                <h3
+                    id="nombreFigura"
+                    class="text-4xl font-black text-azulPrincipal mt-5">
+                </h3>
+
+                <p
+                    id="descripcionFigura"
+                    class="text-xl text-textoSuave mt-4 font-semibold">
+                </p>
+
+                <div class="text-5xl mt-5">
+                    🧸 ☁️ 💙 ✨
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 2 — FIGURAS EN EL MUNDO
+    ====================================================== -->
+
+    <section
+        class="py-20 px-5 fondo-nubes">
+
+        <div
+            class="max-w-screen-xl mx-auto text-center">
+
+            <div class="text-6xl">
+                👀🏠🚗⚽
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulOscuro mt-4">
+
+                ¡Las figuras están en todas partes!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4">
+
+                Toca un objeto y descubre qué figura tiene.
+
+            </p>
+
+
+            <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+
+
+                <button
+                    onclick="mostrarObjeto('⚽','Círculo','La pelota tiene forma de círculo.')"
+                    class="boton-nino bg-white border-4 border-blue-200 shadow-lg">
+
+                    ⚽<br>
+                    <span class="text-base">
+                        Pelota
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="mostrarObjeto('🪟','Cuadrado','Una ventana puede parecer un cuadrado.')"
+                    class="boton-nino bg-white border-4 border-green-200 shadow-lg">
+
+                    🪟<br>
+                    <span class="text-base">
+                        Ventana
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="mostrarObjeto('🍕','Triángulo','Una porción de pizza parece un triángulo.')"
+                    class="boton-nino bg-white border-4 border-yellow-200 shadow-lg">
+
+                    🍕<br>
+                    <span class="text-base">
+                        Pizza
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="mostrarObjeto('📖','Rectángulo','Un libro puede tener forma de rectángulo.')"
+                    class="boton-nino bg-white border-4 border-purple-200 shadow-lg">
+
+                    📖<br>
+                    <span class="text-base">
+                        Libro
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="objetoResultado"
+                class="mt-10 bg-white rounded-[2rem] p-8 shadow-xl hidden">
+
+                <div
+                    id="objetoEmoji"
+                    class="text-8xl">
+                </div>
+
+                <h3
+                    id="objetoNombre"
+                    class="text-3xl font-black text-azulPrincipal mt-4">
+                </h3>
+
+                <p
+                    id="objetoDescripcion"
+                    class="text-xl text-textoSuave mt-3">
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 3 — COLORES
+    ====================================================== -->
+
+    <section
+        class="py-20 px-5 bg-white">
+
+        <div
+            class="max-w-5xl mx-auto text-center">
+
+            <div class="text-6xl">
+                🎨🔵🟡🟢
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulPrincipal mt-4">
+
+                ¡Figuras y colores!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4">
+
+                Toca un color y mira qué figura aparece.
+
+            </p>
+
+
+            <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
+
+
+                <button
+                    onclick="colorFigura('🔵','AZUL')"
+                    class="boton-nino bg-blue-100 border-4 border-blue-300">
+
+                    🔵
+                    <br>
+                    <span class="text-lg">
+                        Azul
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="colorFigura('🟡','AMARILLO')"
+                    class="boton-nino bg-yellow-100 border-4 border-yellow-300">
+
+                    🟡
+                    <br>
+                    <span class="text-lg">
+                        Amarillo
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="colorFigura('🟢','VERDE')"
+                    class="boton-nino bg-green-100 border-4 border-green-300">
+
+                    🟢
+                    <br>
+                    <span class="text-lg">
+                        Verde
+                    </span>
+
+                </button>
+
+
+                <button
+                    onclick="colorFigura('🟣','MORADO')"
+                    class="boton-nino bg-purple-100 border-4 border-purple-300">
+
+                    🟣
+                    <br>
+                    <span class="text-lg">
+                        Morado
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="colorResultado"
+                class="mt-10 text-5xl font-black text-azulPrincipal">
+
+                🎨 ¡Escoge un color!
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 4 — CONTAR LADOS
+    ====================================================== -->
+
+    <section
+        class="py-20 px-5 bg-cielo">
+
+        <div
+            class="max-w-4xl mx-auto text-center">
+
+            <div class="text-6xl">
+                🔢✨
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulPrincipal mt-4">
+
+                ¡Vamos a contar!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4">
+
+                ¿Cuántos lados tiene esta figura?
+
+            </p>
+
+
+            <div
+                class="bg-white rounded-[3rem] shadow-2xl p-10 mt-10">
+
+
+                <div
+                    id="figuraConteo"
+                    class="text-9xl">
+
+                    🔺
+
+                </div>
+
+
+                <div
+                    id="numeroLados"
+                    class="text-4xl font-black text-azulPrincipal mt-5">
+
+                    ¿Cuántos lados?
+
+                </div>
+
+
+                <div
+                    class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+
+                    <button
+                        onclick="comprobarLados(0)"
+                        class="boton-nino bg-blue-100">
+
+                        0
+
+                    </button>
+
+                    <button
+                        onclick="comprobarLados(3)"
+                        class="boton-nino bg-yellow-100">
+
+                        3
+
+                    </button>
+
+                    <button
+                        onclick="comprobarLados(4)"
+                        class="boton-nino bg-green-100">
+
+                        4
+
+                    </button>
+
+                    <button
+                        <!-- CAMBIO REVISADO: este botón mantiene la convención de tu código: estrella = 5 puntas. Si la profe evalúa lados del contorno, habría que agregar 10. -->
+                        onclick="comprobarLados(5)"
+                        class="boton-nino bg-purple-100">
+
+                        5
+
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="mensajeLados"
+                    class="text-2xl font-black mt-8 min-h-[40px]">
+
+                </div>
+
+
+                <button
+                    onclick="nuevaFiguraConteo()"
+                    class="mt-5 bg-azulPrincipal text-white px-7 py-4 rounded-full font-black text-lg">
+
+                    🔄 Otra figura
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 5 — JUEGO DE MEMORIA
+    ====================================================== -->
+
+    <section
+        id="juegos"
+        class="py-20 px-5 bg-white">
+
+        <div
+            class="max-w-5xl mx-auto text-center">
+
+            <div class="text-6xl">
+                🧠💙
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulPrincipal mt-4">
+
+                ¡Memoria de figuras!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4">
+
+                Encuentra las dos figuras iguales.
+
+            </p>
+
+
+            <div
+                id="memoria"
+                class="grid grid-cols-2 md:grid-cols-4 gap-5 mt-10">
+
+            </div>
+
+
+            <div
+                id="mensajeMemoria"
+                class="text-2xl font-black mt-8 min-h-[40px]">
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 6 — ATRAPA LA FIGURA
+    ====================================================== -->
+
+    <section
+        class="py-20 px-5 fondo-nubes">
+
+        <div
+            class="max-w-5xl mx-auto text-center">
+
+            <div class="text-6xl">
+                🎈🔷🎯
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulOscuro mt-4">
+
+                ¡Atrapa la figura!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4">
+
+                Encuentra la figura que te pedimos.
+
+            </p>
+
+
+            <div
+                class="bg-white rounded-[3rem] shadow-2xl p-8 mt-10">
+
+
+                <p
+                    class="text-xl font-bold">
+
+                    Busca:
+
+                </p>
+
+
+                <div
+                    id="objetivoAtrapa"
+                    class="text-8xl mt-3">
+
+                    🔵
+
+                </div>
+
+
+                <div
+                    id="zonaAtrapa"
+                    class="grid grid-cols-2 md:grid-cols-4 gap-5 mt-8">
+
+                </div>
+
+
+                <div
+                    id="mensajeAtrapa"
+                    class="text-2xl font-black mt-8 min-h-[40px]">
+
+                </div>
+
+
+                <div
+                    class="font-black text-xl mt-4">
+
+                    ⭐ Aciertos:
+                    <span id="puntosAtrapa">
+                        0
+                    </span>
+
+                </div>
+
+
+                <button
+                    onclick="nuevoAtrapa()"
+                    class="mt-6 bg-azulPrincipal text-white px-7 py-4 rounded-full font-black">
+
+                    🔄 Jugar otra vez
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN 7 — TABLERO PARA DIBUJAR
+    ====================================================== -->
+
+    <section
+        id="dibujar"
+        class="py-20 px-5 bg-white">
+
+        <div
+            class="max-w-screen-xl mx-auto text-center">
+
+            <div class="text-6xl">
+                ✏️🎨🧸
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulPrincipal mt-4">
+
+                ¡Dibuja figuras!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-4 mb-8">
+
+                Haz clic en el tablero para crear figuras mágicas.
+
+            </p>
+
+
+            <div
+                class="bg-cielo rounded-[2rem] p-5 border-4 border-cieloOscuro shadow-xl">
+
+                <div
+                    id="p5-container"
+                    class="flex justify-center overflow-hidden">
+
+                </div>
+
+            </div>
+
+
+            <p
+                class="text-textoSuave font-bold mt-5">
+
+                👆 ¡Toca o haz clic!
+
+            </p>
+
+
+            <button
+                onclick="limpiarTablero()"
+                class="mt-5 bg-rosado text-pink-600 px-7 py-4 rounded-full font-black">
+
+                🧹 Limpiar tablero
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         SECCIÓN FINAL
+    ====================================================== -->
+
+    <section
+        class="py-20 px-5 fondo-nubes">
+
+        <div
+            class="max-w-4xl mx-auto text-center">
+
+            <div class="text-7xl">
+                🧸☁️🌈✨
+            </div>
+
+            <h2
+                class="text-4xl md:text-5xl font-black text-azulOscuro mt-6">
+
+                ¡Lo hiciste genial!
+
+            </h2>
+
+            <p
+                class="text-xl text-textoSuave font-semibold mt-5">
+
+                Ya conoces muchas figuras.
+                ¡Sigue explorando el mundo que te rodea!
+
+            </p>
+
+
+            <div
+                class="bg-white rounded-[3rem] shadow-xl p-8 mt-10">
+
+                <div class="text-6xl">
+                    ⭐ ⭐ ⭐
+                </div>
+
+                <h3
+                    class="text-3xl font-black text-azulPrincipal mt-5">
+
+                    ¡Pequeño explorador de figuras! 🧸
+
+                </h3>
+
+                <p
+                    class="text-lg text-textoSuave mt-3">
+
+                    Cada vez que aprendes algo nuevo,
+                    ¡tu imaginación crece!
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer
+        class="bg-azulOscuro text-white text-center py-10">
+
+        <div class="text-5xl">
+            🧸 🔵 🔺 ⭐
+        </div>
+
+        <p
+            class="font-black text-xl mt-5">
+
+            El Reino Mágico de las Figuras ☁️
+
+        </p>
+
+        <p
+            class="opacity-80 mt-2">
+
+            Aprender jugando es mágico. 💙
+
+        </p>
+
+    </footer>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+
+        /* =====================================================
+           INFORMACIÓN DE FIGURAS
+        ===================================================== */
+
+        const figuras = {
+
+            circulo: {
+
+                nombre: "Círculo",
+
+                emoji: "🔵",
+
+                lados: 0,
+
+                descripcion:
+                    "Soy redondito y no tengo esquinas. ¡Como una pelota! ⚽"
+
+            },
+
+            triangulo: {
+
+                nombre: "Triángulo",
+
+                emoji: "🔺",
+
+                lados: 3,
+
+                descripcion:
+                    "Tengo 3 lados y 3 esquinitas. ¡Soy un triángulo! 🔺"
+
+            },
+
+            cuadrado: {
+
+                nombre: "Cuadrado",
+
+                emoji: "🟩",
+
+                lados: 4,
+
+                descripcion:
+                    "Tengo 4 lados iguales. ¡Como algunas ventanas! 🪟"
+
+            },
+
+            rectangulo: {
+
+                nombre: "Rectángulo",
+
+                emoji: "▭",
+
+                lados: 4,
+
+                descripcion:
+                    "Tengo 4 lados. ¡Soy más largo que ancho! 📖"
+
+            },
+
+            rombo: {
+
+                nombre: "Rombo",
+
+                emoji: "💎",
+
+                lados: 4,
+
+                descripcion:
+                    "Tengo 4 lados iguales y parezco un diamante. 💎"
+
+            },
+
+            // CAMBIO REVISADO: el óvalo tiene 0 lados rectos. Esta parte de tu código ya está correcta; NO hace falta modificarla.
+            ovalo: {
+
+                nombre: "Óvalo",
+
+                emoji: "🥚",
+
+                lados: 0,
+
+                descripcion:
+                    "Soy una figura curva y alargadita. No tengo lados rectos. 🥚"
+
+            },
+
+            estrella: {
+
+                nombre: "Estrella",
+
+                emoji: "⭐",
+
+                lados: 5,
+
+                descripcion:
+                    "Tengo puntitas y brillo muchísimo. ⭐"
+
+            },
+
+            pentagono: {
+
+                nombre: "Pentágono",
+
+                emoji: "⬟",
+
+                lados: 5,
+
+                descripcion:
+                    "Tengo 5 lados. ¡Penta significa cinco! ⭐"
+
+            }
+
+        };
+
+
+
+        /* =====================================================
+           MOSTRAR FIGURA
+        ===================================================== */
+
+        // FUNCIÓN IMPORTANTE: mostrarFigura() busca la figura en 'figuras' y muestra su información en la página.
+        // CAMBIO REVISADO: esta función ya está bien; no se modifica.
+        function mostrarFigura(tipo) {
+
+            const figura = figuras[tipo];
+
+            const info =
+                document.getElementById(
+                    "infoFigura"
+                );
+
+            info.classList.remove("hidden");
+
+            document.getElementById(
+                "figuraGrande"
+            ).textContent = figura.emoji;
+
+            document.getElementById(
+                "nombreFigura"
+            ).textContent = figura.nombre;
+
+            document.getElementById(
+                "descripcionFigura"
+            ).textContent = figura.descripcion;
+
+            info.scrollIntoView({
+
+                behavior: "smooth",
+
+                block: "center"
+
+            });
+
+        }
+
+
+
+        /* =====================================================
+           OBJETOS DEL MUNDO
+        ===================================================== */
+
+        function mostrarObjeto(
+            emoji,
+            nombre,
+            descripcion
+        ) {
+
+            const resultado =
+                document.getElementById(
+                    "objetoResultado"
+                );
+
+            resultado.classList.remove("hidden");
+
+            document.getElementById(
+                "objetoEmoji"
+            ).textContent = emoji;
+
+            document.getElementById(
+                "objetoNombre"
+            ).textContent = nombre;
+
+            document.getElementById(
+                "objetoDescripcion"
+            ).textContent = descripcion;
+
+            resultado.classList.add(
+                "rebote"
+            );
+
+            setTimeout(() => {
+
+                resultado.classList.remove(
+                    "rebote"
+                );
+
+            }, 700);
+
+        }
+
+
+
+        /* =====================================================
+           COLORES
+        ===================================================== */
+
+        function colorFigura(
+            emoji,
+            color
+        ) {
+
+            const resultado =
+                document.getElementById(
+                    "colorResultado"
+                );
+
+            resultado.textContent =
+                emoji +
+                " ¡Elegiste el color " +
+                color +
+                "! ✨";
+
+            resultado.classList.add(
+                "rebote"
+            );
+
+            crearEstrellitas();
+
+            setTimeout(() => {
+
+                resultado.classList.remove(
+                    "rebote"
+                );
+
+            }, 700);
+
+        }
+
+
+
+        /* =====================================================
+           JUEGO DE CONTAR LADOS
+        ===================================================== */
+
+        let figuraConteo;
+
+        function nuevaFiguraConteo() {
+
+            const nombres =
+                Object.keys(figuras);
+
+            const indice =
+                Math.floor(
+                    Math.random() *
+                    nombres.length
+                );
+
+            figuraConteo =
+                nombres[indice];
+
+            const figura =
+                figuras[figuraConteo];
+
+            document.getElementById(
+                "figuraConteo"
+            ).textContent =
+                figura.emoji;
+
+            document.getElementById(
+                "numeroLados"
+            ).textContent =
+                "¿Cuántos lados?";
+
+            document.getElementById(
+                "mensajeLados"
+            ).textContent = "";
+
+        }
+
+
+        // CAMBIO REVISADO: el juego ya permite comprobar 0, 3, 4 y 5 según las convenciones actuales de tu página.
+        // Si la profe considera que una estrella de 5 puntas tiene 10 lados en su contorno, habría que añadir una opción 10.
+        function comprobarLados(
+            respuesta
+        ) {
+
+            const figura =
+                figuras[figuraConteo];
+
+            const mensaje =
+                document.getElementById(
+                    "mensajeLados"
+                );
+
+            if (
+                respuesta ===
+                figura.lados
+            ) {
+
+                mensaje.textContent =
+                    "🎉 ¡MUY BIEN! ¡Lo encontraste! 🧸💙";
+
+                mensaje.className =
+                    "text-2xl font-black mt-8 text-green-600 rebote";
+
+                crearEstrellitas();
+
+                setTimeout(
+                    nuevaFiguraConteo,
+                    1300
+                );
+
+            }
+
+            else {
+
+                mensaje.textContent =
+                    "💙 ¡Casi! ¡Inténtalo otra vez!";
+
+                mensaje.className =
+                    "text-2xl font-black mt-8 text-orange-500";
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           JUEGO DE MEMORIA
+        ===================================================== */
+
+        // CAMBIO SUGERIDO: actualmente el memorama usa 4 figuras. Si la consigna exige que participen TODAS las figuras, aquí se pueden incluir las 8.
+        // Para respetar tu código original, NO se agregan figuras automáticamente.
+        const simbolosMemoria = [
+            "🔵",
+            "🔺",
+            "🟩",
+            "⭐"
+        ];
+
+        let cartasMemoria = [];
+
+        let primeraCarta = null;
+
+        let segundaCarta = null;
+
+        let bloqueoMemoria = false;
+
+        let parejasEncontradas = 0;
+
+
+        function iniciarMemoria() {
+
+            cartasMemoria = [
+
+                ...simbolosMemoria,
+
+                ...simbolosMemoria
+
+            ].sort(
+                () => Math.random() - 0.5
+            );
+
+            primeraCarta = null;
+
+            segundaCarta = null;
+
+            bloqueoMemoria = false;
+
+            parejasEncontradas = 0;
+
+            const contenedor =
+                document.getElementById(
+                    "memoria"
+                );
+
+            contenedor.innerHTML = "";
+
+
+            cartasMemoria.forEach(
+                (simbolo, indice) => {
+
+                    const carta =
+                        document.createElement(
+                            "button"
+                        );
+
+                    carta.className =
+                        "h-32 bg-azulPrincipal text-white rounded-3xl text-6xl font-black shadow-lg hover:scale-105 transition";
+
+                    carta.textContent =
+                        "❓";
+
+                    carta.dataset.simbolo =
+                        simbolo;
+
+                    carta.dataset.indice =
+                        indice;
+
+                    carta.onclick =
+                        () => voltearCarta(carta);
+
+                    contenedor.appendChild(
+                        carta
+                    );
+
+                }
+            );
+
+        }
+
+
+        function voltearCarta(carta) {
+
+            if (
+                bloqueoMemoria ||
+                carta === primeraCarta ||
+                carta.textContent !== "❓"
+            ) {
+
+                return;
+
+            }
+
+            carta.textContent =
+                carta.dataset.simbolo;
+
+
+            if (!primeraCarta) {
+
+                primeraCarta =
+                    carta;
+
+                return;
+
+            }
+
+
+            segundaCarta =
+                carta;
+
+            bloqueoMemoria = true;
+
+
+            if (
+                primeraCarta.dataset.simbolo ===
+                segundaCarta.dataset.simbolo
+            ) {
+
+                parejasEncontradas++;
+
+                primeraCarta = null;
+
+                segundaCarta = null;
+
+                bloqueoMemoria = false;
+
+                crearEstrellitas();
+
+                document.getElementById(
+                    "mensajeMemoria"
+                ).textContent =
+                    "🌟 ¡Pareja encontrada!";
+
+                if (
+                    parejasEncontradas ===
+                    simbolosMemoria.length
+                ) {
+
+                    document.getElementById(
+                        "mensajeMemoria"
+                    ).textContent =
+                        "🎉 ¡GANASTE! ¡Encontraste todas! 🧸💙";
+
+                }
+
+            }
+
+            else {
+
+                setTimeout(() => {
+
+                    primeraCarta.textContent =
+                        "❓";
+
+                    segundaCarta.textContent =
+                        "❓";
+
+                    primeraCarta = null;
+
+                    segundaCarta = null;
+
+                    bloqueoMemoria = false;
+
+                    document.getElementById(
+                        "mensajeMemoria"
+                    ).textContent =
+                        "💙 ¡Inténtalo de nuevo!";
+
+                }, 800);
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           ATRAPA LA FIGURA
+        ===================================================== */
+
+        let objetivoAtrapa = "";
+
+        let puntosAtrapa = 0;
+
+
+        function nuevoAtrapa() {
+
+            const nombres =
+                Object.keys(figuras);
+
+            const indice =
+                Math.floor(
+                    Math.random() *
+                    nombres.length
+                );
+
+            objetivoAtrapa =
+                nombres[indice];
+
+            document.getElementById(
+                "objetivoAtrapa"
+            ).textContent =
+                figuras[objetivoAtrapa].emoji;
+
+
+            const contenedor =
+                document.getElementById(
+                    "zonaAtrapa"
+                );
+
+            contenedor.innerHTML = "";
+
+
+            const mezcladas =
+                [...nombres].sort(
+                    () => Math.random() - 0.5
+                );
+
+
+            mezcladas.forEach(
+                tipo => {
+
+                    const boton =
+                        document.createElement(
+                            "button"
+                        );
+
+                    boton.className =
+                        "boton-nino bg-white border-4 border-cieloOscuro shadow-md text-5xl";
+
+                    boton.textContent =
+                        figuras[tipo].emoji;
+
+                    boton.onclick =
+                        () => comprobarAtrapa(tipo);
+
+                    contenedor.appendChild(
+                        boton
+                    );
+
+                }
+            );
+
+            document.getElementById(
+                "mensajeAtrapa"
+            ).textContent = "";
+
+        }
+
+
+        function comprobarAtrapa(
+            tipo
+        ) {
+
+            const mensaje =
+                document.getElementById(
+                    "mensajeAtrapa"
+                );
+
+            if (
+                tipo ===
+                objetivoAtrapa
+            ) {
+
+                puntosAtrapa++;
+
+                document.getElementById(
+                    "puntosAtrapa"
+                ).textContent =
+                    puntosAtrapa;
+
+                mensaje.textContent =
+                    "🎉 ¡MUY BIEN! ¡Encontraste la figura! 🧸✨";
+
+                mensaje.className =
+                    "text-2xl font-black mt-8 text-green-600 rebote";
+
+                crearEstrellitas();
+
+                setTimeout(
+                    nuevoAtrapa,
+                    1000
+                );
+
+            }
+
+            else {
+
+                mensaje.textContent =
+                    "💙 ¡Casi! Mira otra vez.";
+
+                mensaje.className =
+                    "text-2xl font-black mt-8 text-orange-500";
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           ESTRELLITAS
+        ===================================================== */
+
+        function crearEstrellitas() {
+
+            for (
+                let i = 0;
+                i < 8;
+                i++
+            ) {
+
+                const estrella =
+                    document.createElement(
+                        "div"
+                    );
+
+                estrella.className =
+                    "estrella";
+
+                estrella.textContent =
+                    "✨";
+
+                estrella.style.left =
+                    Math.random() * 100 +
+                    "vw";
+
+                estrella.style.top =
+                    Math.random() * 70 +
+                    "vh";
+
+                estrella.style.fontSize =
+                    (
+                        20 +
+                        Math.random() * 25
+                    ) +
+                    "px";
+
+                document.body.appendChild(
+                    estrella
+                );
+
+                setTimeout(() => {
+
+                    estrella.remove();
+
+                }, 1000);
+
+            }
+
+        }
+
+
+
+        /* =====================================================
+           P5.JS
+        ===================================================== */
+
+        let figurasCreadas = [];
+
+
+        // p5.js: setup() prepara el tablero una sola vez al iniciar la actividad.
+        // CAMBIO REVISADO: se conserva exactamente como está.
+        function setup() {
+
+            let canvas =
+                createCanvas(
+                    650,
+                    420
+                );
+
+            canvas.parent(
+                "p5-container"
+            );
+
+            textAlign(
+                CENTER,
+                CENTER
+            );
+
+        }
+
+
+        // p5.js: draw() actualiza/redibuja el tablero para que las figuras puedan moverse o cambiar.
+        // CAMBIO REVISADO: se conserva exactamente como está.
+        function draw() {
+
+            background(
+                234,
+                247,
+                255
+            );
+
+
+            /* NUBES */
+
+            fill(
+                255,
+                255,
+                255,
+                180
+            );
+
+            noStroke();
+
+            ellipse(
+                100,
+                70,
+                130,
+                55
+            );
+
+            ellipse(
+                150,
+                70,
+                150,
+                65
+            );
+
+            ellipse(
+                530,
+                100,
+                150,
+                60
+            );
+
+
+            /* FIGURAS */
+
+            for (
+                let i = 0;
+                i < figurasCreadas.length;
+                i++
+            ) {
+
+                let f =
+                    figurasCreadas[i];
+
+
+                f.x += f.velX;
+
+                f.y += f.velY;
+
+
+                if (
+                    f.x < 30 ||
+                    f.x > width - 30
+                ) {
+
+                    f.velX *= -1;
+
+                }
+
+
+                if (
+                    f.y < 30 ||
+                    f.y > height - 40
+                ) {
+
+                    f.velY *= -1;
+
+                }
+
+
+                fill(
+                    f.r,
+                    f.g,
+                    f.b
+                );
+
+
+                if (
+                    f.tipo ===
+                    "triangulo"
+                ) {
+
+                    triangle(
+
+                        f.x,
+                        f.y - 25,
+
+                        f.x - 28,
+                        f.y + 25,
+
+                        f.x + 28,
+                        f.y + 25
+
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "cuadrado"
+                ) {
+
+                    rectMode(
+                        CENTER
+                    );
+
+                    rect(
+                        f.x,
+                        f.y,
+                        50,
+                        50,
+                        8
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "estrella"
+                ) {
+
+                    dibujarEstrella(
+                        f.x,
+                        f.y,
+                        15,
+                        30,
+                        5
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "rombo"
+                ) {
+
+                    beginShape();
+
+                    vertex(
+                        f.x,
+                        f.y - 30
+                    );
+
+                    vertex(
+                        f.x + 30,
+                        f.y
+                    );
+
+                    vertex(
+                        f.x,
+                        f.y + 30
+                    );
+
+                    vertex(
+                        f.x - 30,
+                        f.y
+                    );
+
+                    endShape(
+                        CLOSE
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "pentagono"
+                ) {
+
+                    dibujarPoligono(
+                        f.x,
+                        f.y,
+                        30,
+                        5
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "rectangulo"
+                ) {
+
+                    rectMode(
+                        CENTER
+                    );
+
+                    rect(
+                        f.x,
+                        f.y,
+                        65,
+                        40,
+                        8
+                    );
+
+                }
+
+                else if (
+                    f.tipo ===
+                    "ovalo"
+                ) {
+
+                    ellipse(
+                        f.x,
+                        f.y,
+                        65,
+                        42
+                    );
+
+                }
+
+                else {
+
+                    circle(
+                        f.x,
+                        f.y,
+                        50
+                    );
+
+                }
+
+            }
+
+
+            /* MENSAJE */
+
+            fill(
+                40,
+                70,
+                90
+            );
+
+            textSize(16);
+
+            textStyle(BOLD);
+
+            text(
+                "☁️ ¡Haz clic para crear figuras! ✨",
+                width / 2,
+                height - 20
+            );
+
+        }
+
+
+        function mousePressed() {
+
+            if (
+                mouseX >= 0 &&
+                mouseX <= width &&
+                mouseY >= 0 &&
+                mouseY <= height
+            ) {
+
+                const tipos =
+                    Object.keys(figuras);
+
+                const tipo =
+                    tipos[
+                        Math.floor(
+                            Math.random() *
+                            tipos.length
+                        )
+                    ];
+
+
+                figurasCreadas.push({
+
+                    x: mouseX,
+
+                    y: mouseY,
+
+                    velX:
+                        random(
+                            -2,
+                            2
+                        ),
+
+                    velY:
+                        random(
+                            -2,
+                            2
+                        ),
+
+                    tipo: tipo,
+
+                    r:
+                        random(
+                            80,
+                            150
+                        ),
+
+                    g:
+                        random(
+                            140,
+                            220
+                        ),
+
+                    b:
+                        random(
+                            190,
+                            255
+                        )
+
+                });
+
+            }
+
+        }
+
+
+        function dibujarEstrella(
+            x,
+            y,
+            radio1,
+            radio2,
+            puntos
+        ) {
+
+            let angulo =
+                TWO_PI / puntos;
+
+            let mitad =
+                angulo / 2;
+
+            beginShape();
+
+            for (
+                let a = 0;
+                a < TWO_PI;
+                a += angulo
+            ) {
+
+                let sx =
+                    x +
+                    cos(a) *
+                    radio2;
+
+                let sy =
+                    y +
+                    sin(a) *
+                    radio2;
+
+                vertex(
+                    sx,
+                    sy
+                );
+
+
+                sx =
+                    x +
+                    cos(
+                        a +
+                        mitad
+                    ) *
+                    radio1;
+
+                sy =
+                    y +
+                    sin(
+                        a +
+                        mitad
+                    ) *
+                    radio1;
+
+                vertex(
+                    sx,
+                    sy
+                );
+
+            }
+
+            endShape(
+                CLOSE
+            );
+
+        }
+
+
+        function dibujarPoligono(
+            x,
+            y,
+            radio,
+            lados
+        ) {
+
+            beginShape();
+
+            for (
+                let i = 0;
+                i < lados;
+                i++
+            ) {
+
+                let angulo =
+                    TWO_PI *
+                    i /
+                    lados -
+                    HALF_PI;
+
+                let px =
+                    x +
+                    cos(angulo) *
+                    radio;
+
+                let py =
+                    y +
+                    sin(angulo) *
+                    radio;
+
+                vertex(
+                    px,
+                    py
+                );
+
+            }
+
+            endShape(
+                CLOSE
+            );
+
+        }
+
+
+        function limpiarTablero() {
+
+            figurasCreadas = [];
+
+        }
+
+
+
+        /* =====================================================
+           INICIAR
+        ===================================================== */
+
+        window.addEventListener(
+            "DOMContentLoaded",
+            () => {
+
+                nuevaFiguraConteo();
+
+                iniciarMemoria();
+
+                nuevoAtrapa();
+
+            }
+        );
+
+    </script>
+
+
+</body>
+
+</html>
